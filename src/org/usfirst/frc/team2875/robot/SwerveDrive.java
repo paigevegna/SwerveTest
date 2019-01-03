@@ -12,7 +12,7 @@ public class SwerveDrive{
 	public static final double LENGTH = .517525; //m
 	public static final double WIDTH = .5699125;
 	private static final double MAX_VOLTS = 4.95;
-	private static final double DEADZONE = 5;
+	private static final double DEADZONE = .05;
 	private static final double SERVO_SPEED = 1.0;
 	private static final double KP = .5;
 	
@@ -38,17 +38,9 @@ public class SwerveDrive{
 	private Encoder[][] encoders = {{new Encoder(encPorts[0][0][0], encPorts[0][0][1]), new Encoder(encPorts[0][1][0], encPorts[0][1][1])},
 									{new Encoder(encPorts[1][0][0], encPorts[1][0][1]), new Encoder(encPorts[1][1][0], encPorts[1][1][1])}};
 	
-	private PIDController[][] pid = {{new PIDController(.05, 0, 0, encoders[0][0], turning[0][0]), new PIDController(.05, 0, 0, encoders[0][1], turning[0][1])},
-									 {new PIDController(.05, 0, 0, encoders[1][0], turning[1][0]), new PIDController(.05, 0, 0, encoders[1][1], turning[1][1])}};
-	
-	
 	public SwerveDrive()
 	{
-		/*for (PIDController[] side: pid)
-		{
-			for (PIDController controller: side)
-				controller.enable();
-		}*/
+        ;
 	}
 	
 	public void reset()
@@ -157,31 +149,40 @@ public class SwerveDrive{
 		
 	}
 
-	public void drive(double x, double y) {
-		double dZone = .05;
-		x = Math.abs(x) > dZone ? x : 0;
-		y = Math.abs(y) > dZone ? y : 0;
-		double angle = Math.atan(y / x) * (180 / Math.PI);
-		if (x < 0 && y < 0)
-			angle += 90;
-		else if (x > 0 && y < 0)
-			angle += 180;
-		else if (x > 0 && y > 0)
-			angle += 270;
-		
-		/*for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 2; j++) {
-				turn(angle, turning[i][j], encoders[i][j]);
-			}
-		}
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 2; j++) {
-				turn(angle, turning[i][j], encoders[i][j]);
-			}
-		}*/
-		System.out.println("front left: " + encoders[0][0].getFPGAIndex());
-		System.out.println("front right: " + encoders[0][1].getFPGAIndex());
-		System.out.println("back left: " + encoders[1][0].getFPGAIndex());
-		System.out.println("back right: " + encoders[1][1].getFPGAIndex());
+	public void drive(double x, double y) 
+    {
+		x = Math.abs(x) > DEADZONE ? x : 0;
+		y = Math.abs(y) > DEADZONE ? y : 0;
+
+        double refAngle = Math.atan(Math.abs(y) / Math.abs(x)) * (180 / Math.PI); // In Degrees
+        double targetAngle; // In Degrees
+
+        if (x > 0 && y > 0)
+            targetAngle =  90 - refAngle;
+        else if (x > 0 && y < 0)
+            targetAngle = refAngle + 90;
+		else if (x < 0 && y < 0)
+            targetAngle = 270 - refAngle;
+        else if (x < 0 && y > 0)
+            targetAngle = refAngle + 270;
+
+        targetAngle = targetAngle - 180; // Max values of 180, min value of -180
 	}
+    
+    /* setPowers - set the power of the motors given a 2D array
+     *
+     * args:
+     *      powers - the speed the motors should move at
+     */
+
+    public void setPowers(powers[][])
+    {
+        for (int i = 0; i < powers.length; i++)
+        {
+            for (int j = 0; j < powers[i].length; j++)
+            {
+                power[i][j].set(powers[i][j]);
+            }
+        }
+    }
 }

@@ -14,6 +14,7 @@ public class SwerveDrive{
 	private static final double MAX_VOLTS = 4.95;
 	private static final double DEADZONE = .05;
 	private static final double SERVO_SPEED = 1.0;
+    private static final double PULSE_PER_ROTATION = 100;
 	private static final double KP = .5;
 	
 	private AnalogGyro gyro = new AnalogGyro(0); //get real value
@@ -24,10 +25,10 @@ public class SwerveDrive{
 	public static final int[][] turnPorts = {{7, 1},
 											 {5, 3}};//updated
 	
-	private Spark[][] power = {{new Spark(drivePorts[0][0]), new Spark(drivePorts[0][1])},
+	private Spark[][] powerSparks = {{new Spark(drivePorts[0][0]), new Spark(drivePorts[0][1])},
 							   {new Spark(drivePorts[1][0]), new Spark(drivePorts[1][1])}};
 	
-	private Spark[][] turning = {{new Spark(turnPorts[0][0]), new Spark(turnPorts[0][1])},
+	private Spark[][] turningSparks = {{new Spark(turnPorts[0][0]), new Spark(turnPorts[0][1])},
 			   					 {new Spark(turnPorts[1][0]), new Spark(turnPorts[1][1])}};
 	
 	private int[][][] encPorts = {{{9, 8}, {7, 6}}, //updated
@@ -83,10 +84,10 @@ public class SwerveDrive{
 	    	}
 	    }
 	    
-	    power[0][0].set(frontLeftSpeed);
-	    power[0][1].set(frontRightSpeed);
-	    power[1][0].set(backLeftSpeed);
-	    power[1][1].set(backRightSpeed);
+	    powerSparks[0][0].set(frontLeftSpeed);
+	    powerSparks[0][1].set(frontRightSpeed);
+	    powerSparks[1][0].set(backLeftSpeed);
+	    powerSparks[1][1].set(backRightSpeed);
 	    
 	    double[][] setpoint = {{frontLeftAngle * (MAX_VOLTS * 0.5) + (MAX_VOLTS * 0.5), frontRightAngle * (MAX_VOLTS * 0.5) + (MAX_VOLTS * 0.5)},
 	    					   {backLeftAngle * (MAX_VOLTS * 0.5) + (MAX_VOLTS * 0.5), backRightAngle * (MAX_VOLTS * 0.5) + (MAX_VOLTS * 0.5)}};
@@ -155,19 +156,31 @@ public class SwerveDrive{
 		y = Math.abs(y) > DEADZONE ? y : 0;
 
         double refAngle = Math.atan(Math.abs(y) / Math.abs(x)) * (180 / Math.PI); // In Degrees
-        double targetAngle; // In Degrees
+        double transAngle; // In Degrees
 
         if (x > 0 && y > 0)
-            targetAngle =  90 - refAngle;
+            transAngle =  90 - refAngle;
         else if (x > 0 && y < 0)
-            targetAngle = refAngle + 90;
+            transAngle = refAngle + 90;
 		else if (x < 0 && y < 0)
-            targetAngle = 270 - refAngle;
+            transAngle = 270 - refAngle;
         else if (x < 0 && y > 0)
-            targetAngle = refAngle + 270;
+            transAngle = refAngle + 270;
 
-        targetAngle = targetAngle - 180; // Max values of 180, min value of -180
+        transAngle = transAngle - 180; // Max values of 180, min value of -180
 	}
+
+    private void moveToAngles(angles[][])
+    {
+        for (int i = 0; i < angles.length; i++)
+        {
+            for (int j = 0; j < angles[i].length; j++)
+            {
+                double currPos = encoders[i][j].get() * (360 / PULSE_PER_ROTATION);
+                double error = currPos - 
+            }
+        }
+    }
     
     /* setPowers - set the power of the motors given a 2D array
      *

@@ -16,14 +16,18 @@ public class SwerveDrive{
 	private static final double SERVO_SPEED = 1.0;
     private static final double PULSE_PER_ROTATION = 100;
 	private static final double KP = .5;
+    private static final double ERROR_TOL = 3;
+    private static final double P = 1;
+    private static final double I = 1;
+    private static final double D = 1;
+    private double integral = 0; 
 	
 	private AnalogGyro gyro = new AnalogGyro(0); //get real value
 	
 	public static final int[][] drivePorts = {{0, 2},//updated
 											  {6, 4}};
 	
-	public static final int[][] turnPorts = {{7, 1},
-											 {5, 3}};//updated
+	public static final int[][] turnPorts = {{7, 1}, {5, 3}};//updated
 	
 	private Spark[][] powerSparks = {{new Spark(drivePorts[0][0]), new Spark(drivePorts[0][1])},
 							   {new Spark(drivePorts[1][0]), new Spark(drivePorts[1][1])}};
@@ -38,10 +42,19 @@ public class SwerveDrive{
 	
 	private Encoder[][] encoders = {{new Encoder(encPorts[0][0][0], encPorts[0][0][1]), new Encoder(encPorts[0][1][0], encPorts[0][1][1])},
 									{new Encoder(encPorts[1][0][0], encPorts[1][0][1]), new Encoder(encPorts[1][1][0], encPorts[1][1][1])}};
+
+    private PIDController[][] controllers = {{new PIDController(P, I, D, encoders[0][0], turningSparks[0][0]), new PIDController(P, I, D, encoders[0][1], turningSparks[0][1])},
+                                             {new PIDController(P, I, D, encoders[1][0], turningSparks[1][0]), new PIDController(P, I, D, encoders[1][1], turningSparks[1][1])}};
 	
 	public SwerveDrive()
 	{
-        ;
+        for (PIDController[] side: controllers)
+        {
+            for (PIDController)
+            {
+                controller.setInputRange(
+            }
+        }
 	}
 	
 	public void reset()
@@ -170,6 +183,8 @@ public class SwerveDrive{
         transAngle = transAngle - 180; // Max values of 180, min value of -180
 	}
 
+    
+
     private void moveToAngles(angles[][])
     {
         for (int i = 0; i < angles.length; i++)
@@ -177,7 +192,7 @@ public class SwerveDrive{
             for (int j = 0; j < angles[i].length; j++)
             {
                 double currPos = encoders[i][j].get() * (360 / PULSE_PER_ROTATION);
-                double error = currPos - 
+
             }
         }
     }
@@ -188,14 +203,15 @@ public class SwerveDrive{
      *      powers - the speed the motors should move at
      */
 
-    public void setPowers(powers[][])
+    private void setPowers(powers[][])
     {
         for (int i = 0; i < powers.length; i++)
         {
             for (int j = 0; j < powers[i].length; j++)
             {
-                power[i][j].set(powers[i][j]);
+                powerSparks[i][j].set(powers[i][j]);
             }
         }
     }
+
 }
